@@ -7,6 +7,10 @@
 	!addr BLINE = $07c0	; bottom line
 	!addr RANDOM = $d41b
 	!addr VICCURSOR = $0a27	; disable cursor
+	!addr BORDERCOLOR = $d020
+	!addr BGCOLOR = $d021
+	!addr COLORRAM = $d800
+
 	!addr HEADADDR = $fa	; 16-bit, byte with offset of worm head in display memory
 	!addr NUMADDR = $fc	; 16-bit, pointer to where we place random numbers in screen memory
 	!addr TAILADDR = $b0	; 16-bit, pointer to location of tail
@@ -16,18 +20,27 @@
 	;; list of pointers to worm body pieces stored in $2000 - $27ff
 	!addr HEADP = $b6 	; pointer to the head location pointer
 	!addr TAILP = $b8	; pointer to the tail location pointer
+;;; constants
 	HEADCHAR = $0f	; filled circle
 	BODYCHAR = $51	; 0
 	EDGECHAR = $2a	; Asterisk
-	SPACE = $20
+	SPACE = $20	; blank space
+	BLACK = $0	; background colors
+	WHITE = $1
+	CYAN = $3
 	
 ;;; program loop
 start:
-	lda #0			; for banking?
+	lda #0			; banks in IO bank
 	sta $ff00
-	lda #$20
-	jsr fillscreen		; fill screen with blanks
 	jsr setuprand		; setup RNG
+	lda #BLACK		; setup colors
+	sta BORDERCOLOR
+	sta BGCOLOR
+	lda #WHITE
+	jsr fillcolorram
+	lda #SPACE		;
+	jsr fillscreen		; fill screen with blanks
 	lda #1
 	sta VICCURSOR		; disable cursor during game
 	lda #5
