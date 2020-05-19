@@ -17,6 +17,7 @@
 	!addr LENGTH = $b2	; 16-bit, length of worm
 	!addr MOREBODY = $b4
 	!addr KEYPRESS = $d4
+	!addr LASTKEY = $fe
 	;; list of pointers to worm body pieces stored in $2000 - $27ff
 	!addr HEADP = $b6 	; pointer to the head location pointer
 	!addr TAILP = $b8	; pointer to the tail location pointer
@@ -33,6 +34,7 @@
 start:
 	lda #0			; banks in IO bank
 	sta $ff00
+	sta LASTKEY		; initialize LASTKEY to 0
 	jsr setuprand		; setup RNG
 	lda #BLACK		; setup colors
 	sta BORDERCOLOR
@@ -192,6 +194,7 @@ removetail:
 	bne ++
 	inc LENGTH+1
 ++	pla
+	jsr delay1sec
 	rts
 	;; MOREBODY == 0, we remove character at (TAILADDR) and increment TAILP
 +	lda #SPACE
@@ -213,7 +216,19 @@ removetail:
 	lda (TAILP),y
 	sta TAILADDR+1
 	pla
+	jsr delay1sec
 	rts
+	
+delay1sec:			; nop for 65k loops
+	ldx #$b0
+	stx delay+1
+--	stx delay
+-	inc delay
+	bne -
+	inc delay+1
+	bne --
+	rts
+
 
 ;;; We need to draw the body character on the character we were at, before we move the head
 printbody:
@@ -254,11 +269,7 @@ waitforkey:
 	lda KEYPRESS
 	cmp #88			; has a key not been pressed?
 	beq waitforkey		; then keep waiting
-	pha			; save key, but wait until keypress is over!
--	lda KEYPRESS
-	cmp #88			; has the key been released?
-	bne -			; if not, then wait until released
-	pla
+	sta LASTKEY
 	rts
 
 ;;; draw the border on the screen for initial setup
@@ -297,3 +308,5 @@ drawborder:
 ;;; imports
 	!src "setuprand.s"
 	!src "textscreenlib.s"
+
+delay:	!hex 00 00
