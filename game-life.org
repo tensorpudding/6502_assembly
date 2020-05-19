@@ -1,0 +1,25 @@
+* Notes
+
+- How does CGAL work?
+ + each cell lives or dies based on neighbors
+   - live cell stays alive if =2 or =3 neighbors
+   - live cell dies if <2 or >3 neighbors
+   - dead cell comes to life if =3 neighbors
+ + screen memory $0400
+ + working area $2000
+ + 
+
+- code
+  + clear the screen
+  + start some cells
+    - randomly turn alive X cells
+  + take a turn
+    - clear the working area
+    - check each cell
+      + if dead, skip, otherwise increment value of neighbors in working area
+    - copy working area to screen memory
+      + check working cell and screen cell
+	- if working = 3, alive
+	- if working =2 && screen = alive, alive
+	- otherwise dead
+    - pause

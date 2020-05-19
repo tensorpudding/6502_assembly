@@ -1,0 +1,35 @@
+; div32x8.a
+	;; !to "div32x8", cbm
+	;; * = $0b00
+
+	!addr dividend = $c00
+	!addr quotient = $c04
+	!addr divisor = $c08
+	!addr remainder = $c09
+
+
+div32x8:	lda #0
+	sta quotient
+	sta quotient+1
+	sta quotient+2
+	sta quotient+3
+	ldx #32
+dloop:	asl dividend
+	rol dividend+1
+	rol dividend+2
+	rol dividend+3
+	rol
+	cmp divisor
+	php
+	rol quotient
+	rol quotient+1
+	rol quotient+2
+	rol quotient+3
+	plp
+	bcc nosbc
+	sec
+	sbc divisor
+nosbc:	dex
+	bne dloop
+	sta remainder
+	rts

@@ -1,0 +1,22 @@
+* Notes for 6502 Assembly Programming
+- print 1_234_567_890
+- 499602d2
+- 01001001 10010110 00000010 11010010
+
+So, to convert hex number to decimal characters...
+divide by 10 over and over again, and you get digits as remainder
+Then convert digit to proper character code
+-> 499602d2 / 10 -> r 0
+-> divide and r 9
+-> ..
+-> left with 1
+-> then get remainder 0
+
+So store dividend,
+set divisor to $0a (10)
+set counter to 0 and increment in a loop
+- Loop:
+ + divide dividend by 10
++ push remainder on stack
++ check if dividend is 0, exit loop if done
++ increment counter, move quotient to dividend
