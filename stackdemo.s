@@ -8,7 +8,7 @@ level1:
 	pha
 	nop
 	jsr level2
-	nop
+here:	nop
 	pla
 	rts
 	nop
@@ -27,10 +27,21 @@ level3:
 	lda #$cc
 	pha
 	nop
-	jsr level3
+	jsr endgame
 	nop
 	pla
 	rts
 	nop
 	nop
 	
+endgame:
+	nop
+	tsx
+	inx
+	inx
+	inx
+	inx
+	inx
+	inx
+	txs
+	rts
