@@ -1,4 +1,4 @@
-;;;  worm - The classic bsdgames version, implemented for Commodore 64/128
+;;;  worm - The classic bsdgames version, implemented for Commodore 128
 	!to "worm", cbm
 	* = $1300
 	
