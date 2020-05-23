@@ -10,6 +10,7 @@
 	!addr BORDERCOLOR = $d020
 	!addr BGCOLOR = $d021
 	!addr COLORRAM = $d800
+	!addr BASIC = $4000	; start of basic, head here when done!
 
 	!addr HEADADDR = $fa	; 16-bit, byte with offset of worm head in display memory
 	!addr NUMADDR = $fc	; 16-bit, pointer to where we place random numbers in screen memory
@@ -18,9 +19,12 @@
 	!addr MOREBODY = $b4
 	!addr KEYPRESS = $d4
 	!addr LASTKEY = $fe
+	!addr JIFFIES = $a2
 	;; list of pointers to worm body pieces stored in $2000 - $27ff
 	!addr HEADP = $b6 	; pointer to the head location pointer
 	!addr TAILP = $b8	; pointer to the tail location pointer
+	!addr SP = $ba		; save stack pointer
+	!addr PRINTLOC = $b6
 ;;; constants
 	HEADCHAR = $0f	; filled circle
 	BODYCHAR = $51	; 0
@@ -29,9 +33,13 @@
 	BLACK = $0	; background colors
 	WHITE = $1
 	CYAN = $3
+	YKEY = $19
+	NKEY = $27
 	
 ;;; program loop
 start:
+	tsx
+	stx SP			; save stack pointer so we can reset stack
 	lda #0			; banks in IO bank
 	sta $ff00
 	sta LASTKEY		; initialize LASTKEY to 0
@@ -62,13 +70,13 @@ start:
 ;;; place worm at starting location
 ;;; also initialize pointer table so that HEADP is a pointer to the head, and TAILP to a pointer for tail
 startworm:
-	lda #0
+	lda #$f4
 	ldy #0
 	sta HEADADDR		; we're storing $0600 as the starting location
 	sta TAILADDR		; of the head in HEADADDR, then storing $0600
 	sta (HEADP),y		; in our pointer table for HEADP and TAILP
 	sta (TAILP),y
-	lda #6			; therefore $2000-$2001 = 00 60
+	lda #5			; therefore $2000-$2001 = 00 60
 	sta HEADADDR+1		; and HEADP/TAILP already point to $2000
 	sta TAILADDR+1
 	iny
@@ -81,7 +89,7 @@ startworm:
 	
 ;;;  main loop, waits for input, then moves worm, and repeats
 mainloop:
-	jsr waitforkey		; gets keypress, stores in A
+	jsr gamekeypress	; gets keypress, stores in A
 	jsr printbody
 	cmp #$1d		; is it h (left?)
 	bne ++
@@ -153,8 +161,60 @@ collision:
 	
 ;;; close down the game, print the score?
 endgame:
-	brk
-
+	ldy #0
+-	lda endmsg1,y
+	beq +
+	sta $0572,y
+	iny
+	bne -
++	ldy #0
+-	lda endmsg2,y
+	beq +
+	sta $059a,y
+	iny
+	bne -
++	ldy #0
+-	lda endmsg1,y
+	beq +
+	sta $05c2,y
+	iny
+	bne -
++	ldy #0
+-	lda endmsg3,y
+	beq +
+	sta $05ea,y
+	iny
+	bne -
++	ldy #0
+-	lda endmsg1,y
+	beq +
+	sta $0612,y
+	iny
+	bne -
++	ldy #0	
+-	lda endmsg4,y
+	beq +
+	sta $063a,y
+	iny
+	bne -
++	ldy #0
+-	lda endmsg1,y
+	beq +
+	sta $0662,y
+	iny
+	bne -
+;; now we're filling the score in $06f7
++	lda #6
+	sta PRINTLOC+1
+	lda #$f7
+	sta PRINTLOC
+	lda LENGTH
+	sta dividend
+	lda LENGTH+1
+	sta dividend+1
+	jsr print16bit
+	;;  now we wait for y/n from the player
+	jsr waitforyn
 
 ;;; After we've updated the new head location, check to see if there is a collision and then print the new head if we can. Update the location of HEADADDR in HEADP
 printhead:
@@ -265,12 +325,41 @@ placeanum:
 	rts
 
 ;;; wait for keypress, keycode will be in A
-waitforkey:
-	lda KEYPRESS
+gamekeypress:
+	lda #$c4 		; 256-60 jiffies
+	sta JIFFIES
+-	lda KEYPRESS
 	cmp #88			; has a key not been pressed?
-	beq waitforkey		; then keep waiting
-	sta LASTKEY
+	bne +
+	lda JIFFIES
+	bne -
+	lda LASTKEY
++	sta LASTKEY
 	rts
+	
+waitforyn:
+- 	lda KEYPRESS 		; wait in loop until we have a key depressed
+	cmp #88
+	beq -
+	pha			; save keypress
+-	lda KEYPRESS		; now loop until key is released
+	cmp #88
+	bne -
+	pla
+	cmp #YKEY
+	bne +
+	;; y stuff goes here
+	;; fix SP, then jmp to start
+	ldx SP
+	txs
+	jmp start
++	cmp #NKEY
+	bne waitforyn
+	;; n stuff goes here
+;;; quit game here
+	lda #0
+	sta $d0
+	jmp BASIC
 
 ;;; draw the border on the screen for initial setup
 drawborder:
@@ -308,5 +397,10 @@ drawborder:
 ;;; imports
 	!src "setuprand.s"
 	!src "textscreenlib.s"
+	!src "printnumbers.s"
 
 delay:	!hex 00 00
+endmsg1: !scr "                 ", 0	
+endmsg2: !scr "    game over!   ", 0
+endmsg3: !scr " your score:     ", 0
+endmsg4: !scr " play again? y/n ", 0
