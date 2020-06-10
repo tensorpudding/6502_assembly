@@ -77,15 +77,9 @@ fnot:
 !zone rotr_n {
 rotr_n:
 .here:	lsr $00,x
-	inx
-	ror $00,x
-	inx
-	ror $00,x
-	inx
-	ror $00,x
-	dex
-	dex
-	dex
+	ror $01,x
+	ror $02,x
+	ror $03,x
 	bcc +	
 	lda $00,x
 	ora #$80
@@ -133,15 +127,9 @@ rotl_n:
 !zone shr_n {
 shr_n:
 .here:	lsr $00,x
-	inx
-	ror $00,x
-	inx
-	ror $00,x
-	inx
-	ror $00,x
-	dex
-	dex
-	dex
+	ror $01,x
+	ror $02,x
+	ror $03,x
 +	dey
 	bne .here
 	rts
