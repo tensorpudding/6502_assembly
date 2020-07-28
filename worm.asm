@@ -1,5 +1,5 @@
 ;;;  worm - The classic bsdgames version, implemented for Commodore 128
-	!to "worm", cbm
+	!to "worm.prg", cbm
 	* = $1300
 	
 ;;; address defines
@@ -395,9 +395,9 @@ drawborder:
 	
 
 ;;; imports
-	!src "setuprand.s"
-	!src "textscreenlib.s"
-	!src "printnumbers.s"
+	!src "setuprand.asm"
+	!src "textscreenlib.asm"
+	!src "printnumbers.asm"
 
 delay:	!hex 00 00
 endmsg1: !scr "                 ", 0	

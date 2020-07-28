@@ -1,7 +1,6 @@
 ;;; routines for manipulating 32-bit values
 ;;; used by: sha256.s
 	
-	
 ;;; Copies series of zero-page byte to another address
 ;;; Y = address of first byte of source
 ;;; A = address of first byte of destination
@@ -95,28 +94,16 @@ rotr_n:
 ;;; Leaves Y = 0 at the end
 !zone rotl_n {
 rotl_n:
-	inx
-	inx
-	inx
-.here:	asl $00,x
-	dex
+.here:	asl $03,x
+	rol $02,x
+	rol $01,x
 	rol $00,x
-	dex
-	rol $00,x
-	dex
-	rol $00,x
-	inx
-	inx
-	inx
 	bcc +	
-	lda $00,x
+	lda $03,x
 	ora #$01
-	sta $00,x
+	sta $03,x
 +	dey
 	bne .here
-	dex
-	dex
-	dex
 	rts
 }
 
